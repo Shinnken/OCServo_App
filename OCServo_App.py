@@ -64,25 +64,41 @@ class App():
         entp = tk.StringVar(self.root, value='0')
         entb = tk.StringVar(self.root, value='0')
 
-        tk.Label(self.root, text="Placeholder", bg=bcg).pack()
-        plq = tk.Entry(self.root, textvariable=entp, width=3, bg=blu).pack()
 
-        botmodes = serial_ports()
+        plq = tk.Entry(self.root, textvariable=entp, width=3, bg=blu)
+
+        botmodes = ["COM1", "COM2", "COM3"]
+        # botmodes = serial_ports()
         clickedb = tk.StringVar()
         clickedb.set("Pick COM")
+        print(botmodes)
 
-        tk.Label(self.root, text="Placeholder", bg=bcg).pack()
+        test = "xd"
+
         dropbotmode = tk.OptionMenu(self.root, clickedb, *botmodes, command=self.getlabelb)
         dropbotmode.config(bg=men)
-        dropbotmode.pack()
+
 
         button_frame = tk.Frame(self.root)
 
         b_episode = tk.Button(button_frame, text="EPISODE", command=self.test1, bg="#E376AD")
         b_single = tk.Button(button_frame, text="SINGLE", command=self.test1, bg="#E376AD")
+
+
+###################################PACKING######################################
+
+
+        tk.Label(self.root, text="Placeholder", bg=bcg).pack()
+        plq.pack()
+        tk.Label(self.root, text="Placeholder", bg=bcg).pack()
+        dropbotmode.pack()
         b_episode.pack(side=tk.LEFT)
         b_single.pack(side=tk.RIGHT)
         button_frame.pack(pady=5)
+
+
+
+###################################PACKINGEND###################################
 
         self.root.mainloop()
         
