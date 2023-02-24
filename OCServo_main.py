@@ -1,6 +1,7 @@
-import OCServo_App as ocs
+import OCServo_App as ocapp
 
-app = ocs.App()
+
+app = ocapp.App()
 app.run()
 print('Now we can continue running code while mainloop runs!')
 # try:
