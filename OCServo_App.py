@@ -36,7 +36,8 @@ class App():
 
 ###################################SERIAL######################################
 
-        serial_frame = tk.Frame(self.root)
+        serial_frame = tk.Frame(self.root, width=150, height = 100, highlightbackground="black", highlightthickness=1, bg=bcg)
+        serial_frame.pack_propagate(0)
 
         plq = tk.Entry(self.root, textvariable=entp, width=3, bg=blu)
         b_open = tk.Button(serial_frame, text="OPEN", command=self.openSerial, bg="#E376AD")
@@ -44,8 +45,8 @@ class App():
 
 
 ################# Serial Dropdown Menu ####################
-        # botmodes = ["COM1", "COM2", "COM3"]
-        botmodes = serial_ports()
+        botmodes = ["COM1", "COM2", "COM3"]
+        #botmodes = serial_ports()
         clickedb = tk.StringVar()
         clickedb.set("Pick COM")
         print(botmodes)
@@ -53,9 +54,15 @@ class App():
         dropbotmode.config(bg=men)
 ################# Serial Dropdown Menu END ####################
 
-        button_frame = tk.Frame(self.root)
+        writeframe = tk.Frame(self.root, width=360, height = 200, highlightbackground="black", highlightthickness=1, bg=bcg)
+        writeframe.pack_propagate(0)
+        radioframe = tk.Frame(writeframe, bg=bcg)
+        writeoptions = {"Write": 0, "Sync Write": 1, "Bulk Write": 2, "Reg Write": 3}
+        writeoption = tk.IntVar()
+        for (txt, val) in writeoptions.items(): 
+	        tk.Radiobutton(radioframe, text=txt, variable=v, value=val).pack(side = TOP, ipady = 4) 
 
-
+        radiobut1 = tk.Radiobutton(radioframe, writeoptions, text="Position", variable=writeoption, bg=bcg)
 
 
 ###################################PACKING######################################
@@ -64,9 +71,12 @@ class App():
         tk.Label(serial_frame, text="Pick Serial Port", bg=bcg).pack()
         dropbotmode.pack()
         serial_frame.pack(pady=5)
-        b_open.pack(side=tk.LEFT)
-        b_close.pack(side=tk.RIGHT)
-        button_frame.pack(pady=5)
+        b_open.pack(side=tk.LEFT, padx=5)
+        b_close.pack(side=tk.RIGHT, padx=5)
+        tk.Label(writeframe, text="Servo Write", bg=bcg).pack()
+        writeframe.pack()
+        radioframe.pack(pady=5)
+        radiobut1.pack(side=tk.LEFT, padx=5)
 
 
         plq.pack()################################
@@ -96,7 +106,7 @@ class App():
         self.serial.read(7)
         self.serial.write(b'\xff\xff\x11\x04\x02\x08\x01\xe5')
         self.serial.read(7)
-
+        
 
 
 
