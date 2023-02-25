@@ -43,7 +43,6 @@ class OCSerial(threading.Thread):
         self.port = ""
         self.root = tk.Tk()
         threading.Thread.__init__(self)
-        self.start()
 
     def run(self):
         self.serialPort = serial.Serial(self.port, 1_000_000, timeout=1)   # open serial port
@@ -53,8 +52,10 @@ class OCSerial(threading.Thread):
         print("Wrote: " + str(data))
 
     def read(self, bytes_to_read=1):
-        print("Reading: " + hex(bytes_to_read))
-        return self.serialPort.read(bytes_to_read)
+        msg = self.serialPort.read(bytes_to_read)
+        data = msg.hex(sep='/')
+        print("Reading: " + str(data))
+        return msg
 
     def callback(self):
         self.serialPort.close()
