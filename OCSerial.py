@@ -41,7 +41,6 @@ class OCSerial(threading.Thread):
     def __init__(self):
         self.inputdata = ""
         self.port = ""
-        self.root = tk.Tk()
         threading.Thread.__init__(self)
 
     def run(self):
@@ -49,7 +48,8 @@ class OCSerial(threading.Thread):
 
     def write(self, data):
         self.serialPort.write(data)
-        print("Wrote: " + str(data))
+        hex_data = ' '.join(hex(b)[2:].zfill(2) for b in data)
+        print(f"Wrote: {hex_data}")
 
     def read(self, bytes_to_read=1):
         msg = self.serialPort.read(bytes_to_read)
@@ -59,7 +59,6 @@ class OCSerial(threading.Thread):
 
     def callback(self):
         self.serialPort.close()
-        self.root.quit()
 
     def getlabelb(self, selection):
         self.inputdata = selection

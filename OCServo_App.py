@@ -30,8 +30,9 @@ class App():
         self.root.geometry("400x600")
         self.root.config(bg=bcg)
 
-        entp = tk.StringVar(self.root, value='0')
-        #entb = tk.StringVar(self.root, value='0')
+        self.entid = tk.IntVar(self.root, value='0')
+        self.entpos = tk.IntVar(self.root, value='0')
+        self.entspd = tk.IntVar(self.root, value='0')
 
         #################### WINDOW SETUP END ####################
 
@@ -45,8 +46,8 @@ class App():
 
 
 ################# Serial Dropdown Menu ####################
-        botmodes = ["COM1", "COM2", "COM3"]
-        #botmodes = serial_ports()
+        #botmodes = ["COM1", "COM2", "COM3"]
+        botmodes = serial_ports()
         clickedb = tk.StringVar()
         clickedb.set("Pick COM")
         print(botmodes)
@@ -68,12 +69,12 @@ class App():
         w = 7
         entryframe = tk.Frame(writeframe, bg=bcg)
         idframe = tk.Frame(entryframe)
-        identry = tk.Entry(idframe, textvariable=entp, width=w, bg=blu)
+        identry = tk.Entry(idframe, textvariable=self.entid, width=w, bg=blu)
         posframe = tk.Frame(entryframe)
-        posentry = tk.Entry(posframe, textvariable=entp, width=w, bg=blu)
+        posentry = tk.Entry(posframe, textvariable=self.entpos, width=w, bg=blu)
         spdframe = tk.Frame(entryframe)
-        spdentry = tk.Entry(spdframe, textvariable=entp, width=w, bg=blu)
-        b_send = tk.Button(writeframe, text="SEND", command=self.test1, bg="#E376AD")
+        spdentry = tk.Entry(spdframe, textvariable=self.entspd, width=w, bg=blu)
+        b_send = tk.Button(writeframe, text="SEND", command=self.send, bg="#E376AD")
 
 
         #radiobut1 = tk.Radiobutton(radioframe, writeoptions, text="Position", variable=writeoption, bg=bcg)
@@ -139,17 +140,25 @@ class App():
         self.serial.write(b'\xff\xff\x11\x04\x02\x08\x01\xdf')
         self.serial.read(7)
 
+# Checksum function, returns the checksum of the data, if sum is greater than 255, take the lowest 8 bits and then invert
     def checksum(self, data):
-        checksum = 0
-        for i in range(len(data)):
-            checksum += data[i]
-        checksum = ~checksum
-        return checksum
-    def write(self, id, pos):
+        sum = 0
+        for i in range(2, len(data)-1):
+            sum += data[i]
+        if sum > 255:
+            sum = sum & 0xff
+        return ~sum & 0xff
+
+    def write(self, servoid, pos):
+        datalength = 5
+        instruction = 0x03
+        address = 0x2a
         pos = pos.to_bytes(2, 'little')
-        data = [0xff, 0xff, id, 0x04, 0x03, pos[1], pos[0]]
+        data = bytearray([0xff, 0xff, servoid, datalength, instruction, address, pos[0], pos[1]])
         data.append(self.checksum(data))
         self.serial.write(data)
         self.serial.read(15)
 
+    def send(self):
+        self.write(self.entid.get(), self.entpos.get())
 
