@@ -23,7 +23,7 @@ def serial_ports():
         ports = glob.glob('/dev/tty.*')
     else:
         raise EnvironmentError('Unsupported platform')
-
+    print(ports)
     result = []
     for port in ports:
         try:
@@ -31,6 +31,7 @@ def serial_ports():
             s.close()
             result.append(port)
         except (OSError, serial.SerialException):
+            print()
             pass
     return result
 

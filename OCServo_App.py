@@ -10,6 +10,7 @@ class App():
     def __init__(self):
         self.inputdata = ""
         self.root = tk.Tk()
+        self.serial = ocs.OCSerial()
 
 
     def run(self):
@@ -19,7 +20,7 @@ class App():
         #####KOLORY#####
         # image2 =tk.PhotoImage('image.jpg')
         self.bcg = "#16bfe0"
-        men = "#eccc1f"
+        self.men = "#eccc1f"
         self.blu = "#6cb4de"
 
         try:
@@ -27,18 +28,24 @@ class App():
         except:
             pass
 
-        self.root.geometry("400x600")
+        #self.root.geometry("400x600")
+        self.root.geometry("500x600")
         self.root.config(bg=self.bcg)
 
-        self.entid = tk.IntVar(self.root, value=17)
-        self.entpos = tk.IntVar(self.root, value=2000)
-        self.entspd = tk.IntVar(self.root, value=0)
+        self.entid = []
+        self.entpos = []
+        self.entspd = []
+        for i in range(5):
+            self.entid.append(tk.IntVar(self.root, value=13+i))
+            self.entpos.append(tk.IntVar(self.root, value=2000))
+            self.entspd.append(tk.IntVar(self.root, value=0))
+
 
         #################### WINDOW SETUP END ####################
 
 ###################################SERIAL######################################
 
-        serial_frame = tk.Frame(self.root, width=150, height = 100, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        serial_frame = tk.Frame(self.root, width=150, height=100, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         serial_frame.pack_propagate(0)
 
         b_open = tk.Button(serial_frame, text="OPEN", command=self.openSerial, bg="#E376AD")
@@ -52,19 +59,21 @@ class App():
         clickedb.set("Pick COM")
         print(botmodes)
         dropbotmode = tk.OptionMenu(serial_frame, clickedb, *botmodes, command=self.getlabelb)
-        dropbotmode.config(bg=men)
+        dropbotmode.config(bg=self.men)
 ################# Serial Dropdown Menu END ####################
 
-        self.writeframe = tk.Frame(self.root, width=360, height = 200, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        self.writeframe = tk.Frame(self.root, width=460, height=300, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.writeframe.pack_propagate(0)
         radioframe = tk.Frame(self.writeframe, bg=self.bcg)
         writeoptions = {"Write": 0, "Sync Write": 1, "Bulk Write": 2, "Reg Write": 3}
-        writeoption = tk.IntVar()
+        self.writeoption = tk.IntVar()
         x = 0
         rbutton = [None, None, None, None]
         for (txt, val) in writeoptions.items():
-            rbutton[x] = tk.Radiobutton(radioframe, text=txt, variable=writeoption, value=val, bg=self.bcg)
+            rbutton[x] = tk.Radiobutton(radioframe, text=txt, variable=self.writeoption, value=val, bg=self.bcg, command=self.servowriteoption)
             x += 1
+        self.entryframe = tk.Frame(self.writeframe, bg=self.bcg)
+        b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
 
 
         #radiobut1 = tk.Radiobutton(radioframe, writeoptions, text="Position", variable=writeoption, bg=self.bcg)
@@ -84,13 +93,17 @@ class App():
         for i in range(4):
             rbutton[i].config(activebackground=self.bcg)
             rbutton[i].pack(side=tk.LEFT, padx=5)
+        rbutton[self.writeoption.get()].invoke()
         ttk.Separator(self.writeframe, style='red.TSeparator').pack(fill=tk.X, pady=5)
 
 ############################### Write Options ##################################
 
-        self.write()
+        #self.write()
+        tk.Label(self.writeframe, text="Input Values", bg=self.bcg).pack()
 
+        self.entryframe.pack(side=tk.TOP, fill=tk.X)
 
+        b_send.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
 
         ################################
 
@@ -98,26 +111,28 @@ class App():
 ###################################PACKINGEND###################################
 
         self.root.mainloop()
-        
+
         #######################
         #   END OF MAINLOOP   #
 
-
-    def callback(self):
-        self.root.quit()
-        self.serial.callback()
 
     def getlabelb(self, selection):
         self.inputdata = selection
 
     def openSerial(self):
-        self.serial = ocs.OCSerial()
         self.serial.port = self.inputdata
         self.serial.start()
         print(self.inputdata)
 
     def closeSerial(self):
         self.serial.callback()
+    def callback(self):
+        try:
+            self.root.quit()
+            self.serial.callback()
+        except:
+            self.root.quit()
+
 
 # Checksum function, returns the checksum of the data, if sum is greater than 255, take the lowest 8 bits and then invert
     def checksum(self, data):
@@ -150,22 +165,24 @@ class App():
         self.serial.write(data)
         self.serial.read(15)
 
+    def servosyncwrite(self, servoid, pos):
+        pass
+
     def send(self):
         self.servowrite(self.entid.get(), self.entpos.get())
-        
-    def write(self):
+
+    def write(self, num=0):
         w = 7
-        entryframe = tk.Frame(self.writeframe, bg=self.bcg)
-        idframe = tk.Frame(entryframe)
-        identry = tk.Entry(idframe, textvariable=self.entid, width=w, bg=self.blu)
-        posframe = tk.Frame(entryframe)
-        posentry = tk.Entry(posframe, textvariable=self.entpos, width=w, bg=self.blu)
-        spdframe = tk.Frame(entryframe)
-        spdentry = tk.Entry(spdframe, textvariable=self.entspd, width=w, bg=self.blu)
-        b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
-        tk.Label(self.writeframe, text="Input Values", bg=self.bcg).pack()
-        entryframe.pack(side=tk.TOP)
+        self.servoframe = tk.Frame(self.entryframe, bg=self.bcg)
+        idframe = tk.Frame(self.servoframe)
+        identry = tk.Entry(idframe, textvariable=self.entid[num], width=w, bg=self.blu)
+        posframe = tk.Frame(self.servoframe)
+        posentry = tk.Entry(posframe, textvariable=self.entpos[num], width=w, bg=self.blu)
+        spdframe = tk.Frame(self.servoframe)
+        spdentry = tk.Entry(spdframe, textvariable=self.entspd[num], width=w, bg=self.blu)
+        #####################################################################################
         tk.Label(idframe, text="Servo ID: ", bg=self.bcg).pack(side=tk.LEFT)
+        self.servoframe.pack(side=tk.TOP, fill=tk.X)
         identry.pack(side=tk.RIGHT)
         idframe.pack(side=tk.LEFT)
         tk.Label(posframe, text="Servo POS: ", bg=self.bcg).pack(side=tk.LEFT)
@@ -174,7 +191,19 @@ class App():
         tk.Label(spdframe, text="Servo SPD: ", bg=self.bcg).pack(side=tk.LEFT)
         spdentry.pack(side=tk.RIGHT)
         spdframe.pack(side=tk.LEFT)
-        b_send.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
 
 
+    def servowriteoption(self):
+        self.clearframe()
+        if self.writeoption.get() == 0:
+            self.write()
+        elif self.writeoption.get() == 1:
+            self.syncwrite()
 
+    def clearframe(self):
+        for widget in self.entryframe.winfo_children():
+            widget.destroy()
+
+    def syncwrite(self):
+        for i in range(5):
+            self.write(i)
