@@ -73,7 +73,7 @@ class App():
             rbutton[x] = tk.Radiobutton(radioframe, text=txt, variable=self.writeoption, value=val, bg=self.bcg, command=self.servowriteoption)
             x += 1
         self.entryframe = tk.Frame(self.writeframe, bg=self.bcg)
-        b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
+        self.b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
 
 
         #radiobut1 = tk.Radiobutton(radioframe, writeoptions, text="Position", variable=writeoption, bg=self.bcg)
@@ -103,7 +103,7 @@ class App():
 
         self.entryframe.pack(side=tk.TOP, fill=tk.X)
 
-        b_send.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
+        self.b_send.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
 
         ################################
 
@@ -165,11 +165,26 @@ class App():
         self.serial.write(data)
         self.serial.read(15)
 
-    def servosyncwrite(self, servoid, pos):
-        pass
 
-    def send(self):
-        self.servowrite(self.entid.get(), self.entpos.get())
+    def syncsend(self):
+        datalength = 0
+        instruction = 0x83
+        address = 0x2a
+        length = 0x02
+        data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
+        for i in range(len(self.entid)):
+            pos = self.entpos[i].get().to_bytes(2, 'little')
+            data.append(self.entid[i].get())
+            data.append(pos[0])
+            data.append(pos[1])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+        self.serial.read(25)
+
+
+    def send(self, num=0):
+        self.servowrite(self.entid[num].get(), self.entpos[num].get())
 
     def write(self, num=0):
         w = 7
@@ -196,8 +211,10 @@ class App():
     def servowriteoption(self):
         self.clearframe()
         if self.writeoption.get() == 0:
+            self.b_send.config(command=self.send)
             self.write()
         elif self.writeoption.get() == 1:
+            self.b_send.config(command=self.syncsend)
             self.syncwrite()
 
     def clearframe(self):
