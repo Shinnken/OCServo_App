@@ -46,7 +46,7 @@ def checksum(data):
 def transform(angle):
     return int((angle + 180) * 4095 / 360)
 
-class OCSerial():
+class OCServo():
 
     def __init__(self, port):
         self.inputdata = ""
@@ -80,6 +80,7 @@ class OCSerial():
         instruction = 0x03
         address = 0x2a
         pos = transform(angle).to_bytes(2, 'little')
+        print("Value sent: %d", transform(angle))
         data = bytearray([0xff, 0xff, id, datalength, instruction, address, pos[0], pos[1]])
         data[3] = len(data) - 3
         data.append(checksum(data))
@@ -93,7 +94,7 @@ class OCSerial():
         length = 0x02
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
         for i in range(len(idlist)):
-            pos = poslist[i].to_bytes(2, 'little')
+            pos = transform(poslist[i]).to_bytes(2, 'big')
             data.append(idlist[i])
             data.append(pos[0])
             data.append(pos[1])
