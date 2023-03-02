@@ -1,6 +1,5 @@
 # Run tkinter code in another thread
 
-import threading
 import serial
 import sys
 import glob
@@ -34,17 +33,26 @@ def serial_ports():
     return result
 
 
+def checksum(data):
+    sum = 0
+    for i in range(2, len(data)):
+        sum += data[i]
+    if sum > 255:
+        sum = sum & 0xff
+    print(sum)
+    return ~sum & 0xff
 
-class OCSerial(threading.Thread):
+# transform function that converts a given angle -180 to 180 to the 0 to 4095 range
+def transform(angle):
+    return int((angle + 180) * 4095 / 360)
 
-    def __init__(self):
+class OCSerial():
+
+    def __init__(self, port):
         self.inputdata = ""
-        self.port = ""
-        threading.Thread.__init__(self)
-
-    def run(self):
-        self.serialPort = serial.Serial(self.port, 1_000_000, timeout=1)   # open serial port
-
+        self.pos = None
+        self.value = 0
+        self.serialPort = serial.Serial(port, 1_000_000, timeout=1)
 
     def write(self, data):
         self.serialPort.write(data)
@@ -67,3 +75,28 @@ class OCSerial(threading.Thread):
     def test1(self):
         print(self.inputdata)
 
+    def send(self, id, angle):
+        datalength = 0
+        instruction = 0x03
+        address = 0x2a
+        pos = transform(angle).to_bytes(2, 'little')
+        data = bytearray([0xff, 0xff, id, datalength, instruction, address, pos[0], pos[1]])
+        data[3] = len(data) - 3
+        data.append(checksum(data))
+        self.write(data)
+        self.read(100)
+
+    def syncsend(self, idlist, poslist):
+        datalength = 0
+        instruction = 0x83
+        address = 0x2a
+        length = 0x02
+        data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
+        for i in range(len(idlist)):
+            pos = poslist[i].to_bytes(2, 'little')
+            data.append(idlist[i])
+            data.append(pos[0])
+            data.append(pos[1])
+        data[3] = len(data) - 3
+        data.append(checksum(data))
+        self.write(data)

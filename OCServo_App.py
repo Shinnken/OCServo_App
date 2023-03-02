@@ -5,12 +5,12 @@ from OCSerial import serial_ports
 
 
 
-class App():
-
+class App(object):
     def __init__(self):
         self.inputdata = ""
         self.root = tk.Tk()
         self.serial = ocs.OCSerial()
+        self.n = 8
 
 
     def run(self):
@@ -35,9 +35,9 @@ class App():
         self.entid = []
         self.entpos = []
         self.entspd = []
-        for i in range(5):
-            self.entid.append(tk.IntVar(self.root, value=13+i))
-            self.entpos.append(tk.IntVar(self.root, value=2000))
+        for i in range(self.n):
+            self.entid.append(tk.IntVar(self.root, value=10+i))
+            self.entpos.append(tk.IntVar(self.root, value=2047))
             self.entspd.append(tk.IntVar(self.root, value=0))
 
 
@@ -185,6 +185,7 @@ class App():
 
     def send(self, num=0):
         self.servowrite(self.entid[num].get(), self.entpos[num].get())
+        self.serial.value = self.entid[num].get()
 
     def write(self, num=0):
         w = 7
@@ -222,5 +223,5 @@ class App():
             widget.destroy()
 
     def syncwrite(self):
-        for i in range(5):
+        for i in range(self.n):
             self.write(i)
