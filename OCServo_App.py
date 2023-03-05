@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import OCSerial as ocs
 from OCSerial import serial_ports
+import time
 
 
 
@@ -35,6 +36,7 @@ class App(object):
         self.entid = []
         self.entpos = []
         self.entspd = []
+        self.entfilename = tk.StringVar()
         for i in range(self.n):
             self.entid.append(tk.IntVar(self.root, value=10+i))
             self.entpos.append(tk.IntVar(self.root, value=2047))
@@ -62,7 +64,7 @@ class App(object):
         dropbotmode.config(bg=self.men)
 ################# Serial Dropdown Menu END ####################
 
-        self.writeframe = tk.Frame(self.root, width=460, height=300, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        self.writeframe = tk.Frame(self.root, width=460, height=350, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.writeframe.pack_propagate(0)
         radioframe = tk.Frame(self.writeframe, bg=self.bcg)
         writeoptions = {"Write": 0, "Sync Write": 1, "Bulk Write": 2, "Reg Write": 3}
@@ -74,7 +76,13 @@ class App(object):
             x += 1
         self.entryframe = tk.Frame(self.writeframe, bg=self.bcg)
         self.b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
-
+        self.b_read = tk.Button(self.writeframe, text="READ", command=self.read, bg="#E376AD")
+        self.b_on = tk.Button(self.root, text="ON", command=self.on, bg="#E376AD")
+        self.b_off = tk.Button(self.root, text="OFF", command=self.off, bg="#E376AD")
+        self.exportframe = tk.Frame(self.root, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        self.b_export = tk.Button(self.exportframe, text="EXPORT", command=self.exportpos, bg="#E376AD")
+        self.b_import = tk.Button(self.exportframe, text="IMPORT", command=self.importpos, bg="#E376AD")
+        self.filenameentry = tk.Entry(self.exportframe, textvariable=self.entfilename, width=5, bg=self.blu)
 
         #radiobut1 = tk.Radiobutton(radioframe, writeoptions, text="Position", variable=writeoption, bg=self.bcg)
 
@@ -104,6 +112,13 @@ class App(object):
         self.entryframe.pack(side=tk.TOP, fill=tk.X)
 
         self.b_send.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
+        self.b_read.pack(side=tk.BOTTOM, anchor=tk.SE, padx=5, pady=5)
+        self.exportframe.pack(pady=5)
+        self.filenameentry.pack(side=tk.LEFT, padx=5)
+        self.b_export.pack(side=tk.LEFT, padx=5)
+        self.b_import.pack(side=tk.LEFT, padx=5)
+        self.b_on.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
+        self.b_off.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
 
         ################################
 
@@ -141,7 +156,7 @@ class App(object):
             sum += data[i]
         if sum > 255:
             sum = sum & 0xff
-        print(sum)
+        #print(sum)
         return ~sum & 0xff
     def test1(self):
         self.serial.write(b'\xff\xff\x11\x04\x02\x02\x01\xe5')
@@ -165,6 +180,18 @@ class App(object):
         self.serial.write(data)
         self.serial.read(15)
 
+    def servoread(self, servoid):
+        datalength = 0
+        instruction = 0x02
+        address = [0x39, 0x38]
+        data = bytearray([0xff, 0xff, servoid, datalength, instruction, address[1], address[0]])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+        message = self.serial.read(34)
+        #print(message)
+        value = message[5] | message[6] << 8
+        return value
 
     def syncsend(self):
         datalength = 0
@@ -190,11 +217,11 @@ class App(object):
     def write(self, num=0):
         w = 7
         self.servoframe = tk.Frame(self.entryframe, bg=self.bcg)
-        idframe = tk.Frame(self.servoframe)
+        idframe = tk.Frame(self.servoframe, bg=self.bcg)
         identry = tk.Entry(idframe, textvariable=self.entid[num], width=w, bg=self.blu)
-        posframe = tk.Frame(self.servoframe)
+        posframe = tk.Frame(self.servoframe, bg=self.bcg)
         posentry = tk.Entry(posframe, textvariable=self.entpos[num], width=w, bg=self.blu)
-        spdframe = tk.Frame(self.servoframe)
+        spdframe = tk.Frame(self.servoframe, bg=self.bcg)
         spdentry = tk.Entry(spdframe, textvariable=self.entspd[num], width=w, bg=self.blu)
         #####################################################################################
         tk.Label(idframe, text="Servo ID: ", bg=self.bcg).pack(side=tk.LEFT)
@@ -207,6 +234,7 @@ class App(object):
         tk.Label(spdframe, text="Servo SPD: ", bg=self.bcg).pack(side=tk.LEFT)
         spdentry.pack(side=tk.RIGHT)
         spdframe.pack(side=tk.LEFT)
+
 
 
     def servowriteoption(self):
@@ -225,3 +253,46 @@ class App(object):
     def syncwrite(self):
         for i in range(self.n):
             self.write(i)
+
+
+    def read(self):
+        for i in range(len(self.entid)):
+            self.entpos[i].set(self.servoread(self.entid[i].get()))
+            print("Servo %d: %d" % (self.entid[i].get(), self.entpos[i].get()))
+        #self.servoread(self.entid[0].get())
+
+    def on(self):
+        datalength = 0
+        instruction = 0x03
+        address = 0x28
+        data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, 0x01])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+
+    def off(self):
+        datalength = 0
+        instruction = 0x03
+        address = 0x28
+        data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, 0x00])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)\
+
+
+    def exportpos(self):
+        filename = self.entfilename.get() + '.txt'
+        with open(filename, 'w') as f:
+            for i in range(len(self.entid)):
+                f.write("%d %d\n" % (self.entid[i].get(), self.entpos[i].get()))
+            f.close()
+
+    def importpos(self):
+        filename = self.entfilename.get() + '.txt'
+        with open(filename, 'r') as f:
+            for i in range(len(self.entid)):
+                line = f.readline().split()
+                self.entid[i].set(int(line[0]))
+                self.entpos[i].set(int(line[1]))
+            f.close()
+
