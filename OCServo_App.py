@@ -79,6 +79,9 @@ class App(object):
         self.b_read = tk.Button(self.writeframe, text="READ", command=self.read, bg="#E376AD")
         self.b_on = tk.Button(self.root, text="ON", command=self.on, bg="#E376AD")
         self.b_off = tk.Button(self.root, text="OFF", command=self.off, bg="#E376AD")
+        self.b_offfeet = tk.Button(self.root, text="FEET OFF", command=self.offfeet, bg="#E376AD")
+        self.b_offleg1 = tk.Button(self.root, text="R LEG OFF", command=self.offlegr, bg="#E376AD")
+        self.b_offleg2 = tk.Button(self.root, text="L LEG OFF", command=self.offlegl, bg="#E376AD")
         self.exportframe = tk.Frame(self.root, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.b_export = tk.Button(self.exportframe, text="EXPORT", command=self.exportpos, bg="#E376AD")
         self.b_import = tk.Button(self.exportframe, text="IMPORT", command=self.importpos, bg="#E376AD")
@@ -119,7 +122,9 @@ class App(object):
         self.b_import.pack(side=tk.LEFT, padx=5)
         self.b_on.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
         self.b_off.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
-
+        self.b_offfeet.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
+        self.b_offleg2.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
+        self.b_offleg1.pack(side=tk.LEFT, anchor=tk.S, padx=5, pady=5)
         ################################
 
 
@@ -169,12 +174,12 @@ class App(object):
         self.serial.write(test)
         self.serial.read(7)
 
-    def servowrite(self, servoid, pos):
+    def servowrite(self, servoid, pos,):
         datalength = 0
         instruction = 0x03
         address = 0x2a
         pos = pos.to_bytes(2, 'little')
-        data = bytearray([0xff, 0xff, servoid, datalength, instruction, address, pos[0], pos[1]])
+        data = bytearray([0xff, 0xff, servoid, datalength, instruction, address, pos[0], pos[1], 0xe8, 0x06])
         data[3] = len(data) - 3
         data.append(self.checksum(data))
         self.serial.write(data)
@@ -197,13 +202,16 @@ class App(object):
         datalength = 0
         instruction = 0x83
         address = 0x2a
-        length = 0x02
+        length = 0x04
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
         for i in range(len(self.entid)):
             pos = self.entpos[i].get().to_bytes(2, 'little')
+            spd = self.entspd[i].get().to_bytes(2, 'little')
             data.append(self.entid[i].get())
             data.append(pos[0])
             data.append(pos[1])
+            data.append(spd[0])
+            data.append(spd[1])
         data[3] = len(data) - 3
         data.append(self.checksum(data))
         self.serial.write(data)
@@ -231,7 +239,7 @@ class App(object):
         tk.Label(posframe, text="Servo POS: ", bg=self.bcg).pack(side=tk.LEFT)
         posentry.pack(side=tk.RIGHT)
         posframe.pack(side=tk.LEFT)
-        tk.Label(spdframe, text="Servo SPD: ", bg=self.bcg).pack(side=tk.LEFT)
+        tk.Label(spdframe, text="Servo OT(ms): ", bg=self.bcg).pack(side=tk.LEFT)
         spdentry.pack(side=tk.RIGHT)
         spdframe.pack(side=tk.LEFT)
 
@@ -277,8 +285,49 @@ class App(object):
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, 0x00])
         data[3] = len(data) - 3
         data.append(self.checksum(data))
-        self.serial.write(data)\
+        self.serial.write(data)
 
+    def offfeet(self):
+        datalength = 0
+        instruction = 0x03
+        address = 0x28
+        data = bytearray([0xff, 0xff, 0x10, datalength, instruction, address, 0x00])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+        self.serial.read(25)
+        data[2] = 0x11
+        data[-1] = self.checksum(data[:-1])
+        self.serial.write(data)
+        self.serial.read(25)
+
+    def offlegr(self):
+        datalength = 0
+        instruction = 0x03
+        address = 0x28
+        data = bytearray([0xff, 0xff, 0x0a, datalength, instruction, address, 0x00])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+        self.serial.read(25)
+        for i in range(3):
+            data[2] = (2*i)+12
+            data[-1] = self.checksum(data[:-1])
+            self.serial.write(data)
+
+    def offlegl(self):
+        datalength = 0
+        instruction = 0x03
+        address = 0x28
+        data = bytearray([0xff, 0xff, 0x0b, datalength, instruction, address, 0x00])
+        data[3] = len(data) - 3
+        data.append(self.checksum(data))
+        self.serial.write(data)
+        self.serial.read(25)
+        for i in range(3):
+            data[2] = (2*i)+13
+            data[-1] = self.checksum(data[:-1])
+            self.serial.write(data)
 
     def exportpos(self):
         filename = self.entfilename.get() + '.txt'
