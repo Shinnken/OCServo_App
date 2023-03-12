@@ -124,6 +124,7 @@ class OCServo():
     def dolistofmoves(self, filenameslist):
         for filename in filenameslist:
             self.importsyncsend(filename)
+            print("Sending: " + filename)
             time.sleep(2)
 
 # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110 then back to ch2
@@ -132,7 +133,11 @@ if __name__ == "__main__":
     ports = serial_ports()
     print(ports)
     servo = OCServo(ports[0])
+    time.sleep(2)
+    print("Sending p1")
     servo.importsyncsend('p1')
     time.sleep(2)
+    print("Sending list of moves")
     # do a list of moves # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110
     servo.dolistofmoves(['p1', 'ch11', 'ch2', 'ch3', 'ch42', 'ch51', 'ch62', 'ch7', 'ch8', 'ch91', 'ch10', 'ch110', 'ch2', 'ch3', 'ch42'])
+    servo.callback()
