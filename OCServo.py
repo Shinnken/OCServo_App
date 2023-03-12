@@ -135,9 +135,9 @@ if __name__ == "__main__":
     servo = OCServo(ports[0])
     time.sleep(2)
     print("Sending p1")
-    servo.importsyncsend('p1')
+    servo.importsyncsend('p13')
     time.sleep(2)
     print("Sending list of moves")
     # do a list of moves # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110
-    servo.dolistofmoves(['p13', 'ch12', 'ch21', 'ch31', 'ch44', 'ch51', 'ch63', 'ch71', 'ch83', 'ch92', 'ch10', 'ch111', 'ch21', 'ch3', 'ch44'])
+    servo.dolistofmoves(['p13', 'ch12', 'ch21', 'ch31', 'ch44', 'ch51','ch997', 'ch63', 'ch71', 'ch83', 'ch92', 'ch10', 'ch111', 'ch21', 'ch3', 'ch44','ch51','ch997', 'ch63', 'ch71', 'ch83', 'ch92', 'ch10', 'ch111', 'ch21', 'p13'])
     servo.callback()
