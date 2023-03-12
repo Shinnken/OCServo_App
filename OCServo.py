@@ -3,6 +3,7 @@
 import serial
 import sys
 import glob
+import time
 def serial_ports():
     """ Lists serial port names
 
@@ -91,13 +92,47 @@ class OCServo():
         datalength = 0
         instruction = 0x83
         address = 0x2a
-        length = 0x02
+        length = 0x04
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
         for i in range(len(idlist)):
-            pos = transform(poslist[i]).to_bytes(2, 'big')
+            pos = transform(poslist[i]).to_bytes(2, 'little')
             data.append(idlist[i])
             data.append(pos[0])
             data.append(pos[1])
+            data.append(0xe8)
+            data.append(0x03)
         data[3] = len(data) - 3
         data.append(checksum(data))
         self.write(data)
+
+    def importpos(self, filename):
+        filename = filename + '.txt'
+        idlist = [0, 0, 0, 0, 0, 0, 0, 0]
+        poslist = [0, 0, 0, 0, 0, 0, 0, 0]
+        with open(filename, 'r') as f:
+            for i in range(len(idlist)):
+                line = f.readline().split()
+                idlist[i] = int(line[0])
+                poslist[i] = int(line[1])
+            f.close()
+        return idlist, poslist
+
+    def importsyncsend(self, filename):
+        idlist, poslist = self.importpos(filename)
+        self.syncsend(idlist, poslist)
+
+    def dolistofmoves(self, filenameslist):
+        for filename in filenameslist:
+            self.importsyncsend(filename)
+            time.sleep(2)
+
+# p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110 then back to ch2
+
+if __name__ == "__main__":
+    ports = serial_ports()
+    print(ports)
+    servo = OCServo(ports[0])
+    servo.importsyncsend('p1')
+    time.sleep(2)
+    # do a list of moves # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110
+    servo.dolistofmoves(['p1', 'ch11', 'ch2', 'ch3', 'ch42', 'ch51', 'ch62', 'ch7', 'ch8', 'ch91', 'ch10', 'ch110', 'ch2', 'ch3', 'ch42'])
