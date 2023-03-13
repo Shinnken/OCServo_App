@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import OCSerial as ocs
 from OCSerial import serial_ports
+from Analog_servo import AServo
 import time
 
 
@@ -12,6 +13,34 @@ class App(object):
         self.root = tk.Tk()
         self.serial = ocs.OCSerial()
         self.n = 8
+
+        self.__armjoint = [AServo]*8
+
+        self.gpio = AServo()
+
+        # Analog pins LtR   17 27 22 10   9 11   13 19 26 21  #
+        # Numeration         0  1  2  3   0  1    4  5  6  7
+        #                    0  1  2  3   8  9    4  5  6  7
+
+        # Create the servo objects
+        self.__armjoint[0] = AServo(17)
+        self.__armjoint[1] = AServo(27)
+        self.__armjoint[2] = AServo(22)
+        self.__armjoint[3] = AServo(10)
+
+        self.__armjoint[4] = AServo(13)
+        self.__armjoint[5] = AServo(19)
+        self.__armjoint[6] = AServo(26)
+        self.__armjoint[7] = AServo(21)
+        servo180 = [2, 3, 4, 5]
+        servo270 = [0, 1, 6, 7]
+
+        for i in servo180:
+            self.__armjoint[i].set_range(180)
+
+        for i in servo270:
+            self.__armjoint[i].set_range(270)
+
 
 
     def run(self):
@@ -55,8 +84,8 @@ class App(object):
 
 
 ################# Serial Dropdown Menu ####################
-        #botmodes = ["COM1", "COM2", "COM3"]
-        botmodes = serial_ports()
+        botmodes = ["COM1", "COM2", "COM3"]
+        #botmodes = serial_ports()
         clickedb = tk.StringVar()
         clickedb.set("Pick COM")
         print(botmodes)
@@ -67,7 +96,7 @@ class App(object):
         self.writeframe = tk.Frame(self.root, width=460, height=350, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.writeframe.pack_propagate(0)
         radioframe = tk.Frame(self.writeframe, bg=self.bcg)
-        writeoptions = {"Write": 0, "Sync Write": 1, "Bulk Write": 2, "Reg Write": 3}
+        writeoptions = {"Write": 0, "Sync Write": 1, "Analog Write": 2, "Reg Write": 3}
         self.writeoption = tk.IntVar()
         x = 0
         rbutton = [None, None, None, None]
@@ -217,6 +246,9 @@ class App(object):
         self.serial.write(data)
         self.serial.read(25)
 
+    def analogsend(self):
+        for i in range(len(self.entid)):
+            self.__armjoint[i].move_servo(self.entpos[i].get())
 
     def send(self, num=0):
         self.servowrite(self.entid[num].get(), self.entpos[num].get())
@@ -242,6 +274,8 @@ class App(object):
         tk.Label(spdframe, text="Servo OT(ms): ", bg=self.bcg).pack(side=tk.LEFT)
         spdentry.pack(side=tk.RIGHT)
         spdframe.pack(side=tk.LEFT)
+        if self.writeoption.get() == 2:
+            spdframe.pack_forget()
 
 
 
@@ -253,6 +287,9 @@ class App(object):
         elif self.writeoption.get() == 1:
             self.b_send.config(command=self.syncsend)
             self.syncwrite()
+        elif self.writeoption.get() == 2:
+            self.b_send.config(command=self.analogsend)
+            self.syncwrite()
 
     def clearframe(self):
         for widget in self.entryframe.winfo_children():
@@ -261,6 +298,17 @@ class App(object):
     def syncwrite(self):
         for i in range(self.n):
             self.write(i)
+        if self.writeoption.get() == 1:
+            for i in range(self.n):
+                self.entid[i].set(i+10)
+                self.entpos[i].set(2047)
+                self.entspd[i].set(1000)
+        if self.writeoption.get() == 2:
+            for i in range(self.n):
+                self.entid[i].set(i)
+                self.entpos[i].set(0)
+
+
 
 
     def read(self):
