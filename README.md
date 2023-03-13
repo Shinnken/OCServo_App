@@ -1,5 +1,5 @@
 # OCServo_App
-App Designed for working with OCServo servos
+## App Designed for working with OCServo servos
 
 How it works:
 1. Pick a port and open it
