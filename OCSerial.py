@@ -52,9 +52,15 @@ class OCSerial(threading.Thread):
         print(f"Wrote: {hex_data}")
 
 
+    # def read(self, bytes_to_read=1):
+    #     msg = self.serialPort.read(bytes_to_read)
+    #     data = msg.hex(sep='/')
+    #     print("Reading: " + str(data))
+    #     return msg
+
     def read(self, bytes_to_read=1):
         msg = self.serialPort.read(bytes_to_read)
-        data = msg.hex(sep='/')
+        data = '/'.join([hex(b)[2:].zfill(2) for b in msg])
         print("Reading: " + str(data))
         return msg
 
