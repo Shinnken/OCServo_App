@@ -139,5 +139,5 @@ if __name__ == "__main__":
     time.sleep(2)
     print("Sending list of moves")
     # do a list of moves # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110
-    servo.dolistofmoves(['p13', 'ch12', 'ch21', 'ch3', 'ch44', 'ch51','ch9971', 'ch63', 'ch71', 'ch83', 'ch92', 'ch101', 'ch113', 'ch21', 'ch3', 'ch44','ch51','ch9971', 'ch63', 'ch71', 'ch83', 'ch92', 'ch101', 'ch112', 'ch21', 'p13'])
+    servo.dolistofmoves(['p13', 'ch12', 'ch22', 'ch3', 'ch44', 'ch51','ch9971', 'ch64', 'ch71', 'ch83', 'ch92', 'ch101', 'ch113', 'ch22', 'ch3', 'ch44','ch51','ch9971', 'ch64', 'ch71', 'ch83', 'ch92', 'ch101', 'ch113', 'ch22', 'p13'])
     servo.callback()
