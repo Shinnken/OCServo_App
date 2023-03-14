@@ -4,7 +4,28 @@ import OCSerial as ocs
 from OCSerial import serial_ports
 import time
 
+class ScrollableFrame(ttk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        s = ttk.Style()
+        s.configure('new.TFrame', background='#16bfe0')
+        canvas = tk.Canvas(self, bg="#16bfe0")
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = ttk.Frame(canvas, style='new.TFrame')
 
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
 class App(object):
     def __init__(self):
@@ -33,21 +54,25 @@ class App(object):
         self.root.geometry("500x600")
         self.root.config(bg=self.bcg)
 
+
+        self.scrollable = ScrollableFrame(self.root)
+        self.scrollable.pack(fill="both", expand=True)
+
         self.entid = []
         self.entpos = []
         self.entspd = []
         self.entfilename = tk.StringVar()
         for i in range(self.n):
-            self.entid.append(tk.IntVar(self.root, value=10+i))
-            self.entpos.append(tk.IntVar(self.root, value=2047))
-            self.entspd.append(tk.IntVar(self.root, value=0))
+            self.entid.append(tk.IntVar(self.scrollable.scrollable_frame, value=10+i))
+            self.entpos.append(tk.IntVar(self.scrollable.scrollable_frame, value=2047))
+            self.entspd.append(tk.IntVar(self.scrollable.scrollable_frame, value=0))
 
 
         #################### WINDOW SETUP END ####################
 
 ###################################SERIAL######################################
 
-        serial_frame = tk.Frame(self.root, width=150, height=100, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        serial_frame = tk.Frame(self.scrollable.scrollable_frame, width=150, height=100, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         serial_frame.pack_propagate(0)
 
         b_open = tk.Button(serial_frame, text="OPEN", command=self.openSerial, bg="#E376AD")
@@ -64,7 +89,7 @@ class App(object):
         dropbotmode.config(bg=self.men)
 ################# Serial Dropdown Menu END ####################
 
-        self.writeframe = tk.Frame(self.root, width=460, height=350, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        self.writeframe = tk.Frame(self.scrollable.scrollable_frame, width=460, height=350, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.writeframe.pack_propagate(0)
         radioframe = tk.Frame(self.writeframe, bg=self.bcg)
         writeoptions = {"Write": 0, "Sync Write": 1, "Bulk Write": 2, "Reg Write": 3}
@@ -77,12 +102,12 @@ class App(object):
         self.entryframe = tk.Frame(self.writeframe, bg=self.bcg)
         self.b_send = tk.Button(self.writeframe, text="SEND", command=self.send, bg="#E376AD")
         self.b_read = tk.Button(self.writeframe, text="READ", command=self.read, bg="#E376AD")
-        self.b_on = tk.Button(self.root, text="ON", command=self.on, bg="#E376AD")
-        self.b_off = tk.Button(self.root, text="OFF", command=self.off, bg="#E376AD")
-        self.b_offfeet = tk.Button(self.root, text="FEET OFF", command=self.offfeet, bg="#E376AD")
-        self.b_offleg1 = tk.Button(self.root, text="R LEG OFF", command=self.offlegr, bg="#E376AD")
-        self.b_offleg2 = tk.Button(self.root, text="L LEG OFF", command=self.offlegl, bg="#E376AD")
-        self.exportframe = tk.Frame(self.root, highlightbackground="black", highlightthickness=1, bg=self.bcg)
+        self.b_on = tk.Button(self.scrollable.scrollable_frame, text="ON", command=self.on, bg="#E376AD")
+        self.b_off = tk.Button(self.scrollable.scrollable_frame, text="OFF", command=self.off, bg="#E376AD")
+        self.b_offfeet = tk.Button(self.scrollable.scrollable_frame, text="FEET OFF", command=self.offfeet, bg="#E376AD")
+        self.b_offleg1 = tk.Button(self.scrollable.scrollable_frame, text="R LEG OFF", command=self.offlegr, bg="#E376AD")
+        self.b_offleg2 = tk.Button(self.scrollable.scrollable_frame, text="L LEG OFF", command=self.offlegl, bg="#E376AD")
+        self.exportframe = tk.Frame(self.scrollable.scrollable_frame, highlightbackground="black", highlightthickness=1, bg=self.bcg)
         self.b_export = tk.Button(self.exportframe, text="EXPORT", command=self.exportpos, bg="#E376AD")
         self.b_import = tk.Button(self.exportframe, text="IMPORT", command=self.importpos, bg="#E376AD")
         self.filenameentry = tk.Entry(self.exportframe, textvariable=self.entfilename, width=5, bg=self.blu)
