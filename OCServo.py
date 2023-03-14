@@ -99,8 +99,8 @@ class OCServo():
             data.append(idlist[i])
             data.append(pos[0])
             data.append(pos[1])
-            data.append(0xe8)
-            data.append(0x03)
+            data.append(0xbc)
+            data.append(0x02)
         data[3] = len(data) - 3
         data.append(checksum(data))
         self.write(data)
@@ -125,7 +125,7 @@ class OCServo():
         for filename in filenameslist:
             self.importsyncsend(filename)
             print("Sending: " + filename)
-            time.sleep(1)
+            time.sleep(0.7)
 
 # p1 ch11 ch2 ch3 ch42 ch51 ch62 ch7 ch8 ch91 ch10 ch110 then back to ch2
 
