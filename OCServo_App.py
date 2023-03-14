@@ -65,7 +65,7 @@ class App:
         for i in range(self.n):
             self.entid.append(tk.IntVar(self.scrollable.scrollable_frame, value=10+i))
             self.entpos.append(tk.IntVar(self.scrollable.scrollable_frame, value=2047))
-            self.entspd.append(tk.IntVar(self.scrollable.scrollable_frame, value=0))
+            self.entspd.append(tk.IntVar(self.scrollable.scrollable_frame, value=1000))
 
 
         #################### WINDOW SETUP END ####################
