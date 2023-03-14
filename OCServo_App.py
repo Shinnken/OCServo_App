@@ -27,11 +27,12 @@ class ScrollableFrame(ttk.Frame):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-class App(object):
+class App:
     def __init__(self):
         self.inputdata = ""
         self.root = tk.Tk()
         self.serial = ocs.OCSerial()
+        self.serial.join()
         self.n = 8
 
 

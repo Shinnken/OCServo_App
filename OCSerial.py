@@ -46,10 +46,10 @@ class OCSerial(threading.Thread):
         self.serialPort = serial.Serial(self.port, 1_000_000, timeout=1)   # open serial port
 
 
-    # def write(self, data):
-    #     self.serialPort.write(data)
-    #     hex_data = ' '.join(hex(b)[2:].zfill(2) for b in data)
-    #     print(f"Wrote: {hex_data}")
+    def write(self, data):
+        self.serialPort.write(data)
+        hex_data = ' '.join(hex(b)[2:].zfill(2) for b in data)
+        print(f"Wrote: {hex_data}")
 
 
     def read(self, bytes_to_read=1):
@@ -58,11 +58,11 @@ class OCSerial(threading.Thread):
         print("Reading: " + str(data))
         return msg
 
-    def read(self, bytes_to_read=1):
-        msg = self.serialPort.read(bytes_to_read)
-        data = '/'.join([hex(b)[2:].zfill(2) for b in msg])
-        print("Reading: " + str(data))
-        return msg
+    # def read(self, bytes_to_read=1):
+    #     msg = self.serialPort.read(bytes_to_read)
+    #     data = '/'.join([hex(b)[2:].zfill(2) for b in msg])
+    #     print("Reading: " + str(data))
+    #     return msg
 
     def callback(self):
         self.serialPort.close()
