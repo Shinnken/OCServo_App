@@ -32,7 +32,6 @@ class App:
         self.inputdata = ""
         self.root = tk.Tk()
         self.serial = ocs.OCSerial()
-        self.serial.join()
         self.n = 8
 
 
@@ -168,6 +167,7 @@ class App:
     def openSerial(self):
         self.serial.port = self.inputdata
         self.serial.start()
+        self.serial.join()
         print(self.inputdata)
 
     def closeSerial(self):
