@@ -222,6 +222,9 @@ class App:
         message = self.serial.read(34)
         #print(message)
         value = message[5] | message[6] << 8
+        left_leg_ids = [10, 12, 14, 16]
+        if (servoid in left_leg_ids):
+            value = 4095 - value
         return value
 
     def syncsend(self):
