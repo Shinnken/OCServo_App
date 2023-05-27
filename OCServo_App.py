@@ -234,9 +234,14 @@ class App:
         length = 0x04
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
         for i in range(len(self.entid)):
-            pos = self.entpos[i].get().to_bytes(2, 'little')
+            left_leg_ids = [10, 12, 14, 16]
+            position = self.entpos[i].get()
+            id = self.entid[i].get()
+            if(id in left_leg_ids):
+                position = 4095 - position
+            pos = position.to_bytes(2, 'little')
             spd = self.entspd[i].get().to_bytes(2, 'little')
-            data.append(self.entid[i].get())
+            data.append(id)
             data.append(pos[0])
             data.append(pos[1])
             data.append(spd[0])
