@@ -222,7 +222,7 @@ class App:
         message = self.serial.read(34)
         #print(message)
         value = message[5] | message[6] << 8
-        left_leg_ids = [10, 12, 14, 16]
+        left_leg_ids = [11, 12, 14, 16]
         if (servoid in left_leg_ids):
             value = 4095 - value
         return value
@@ -234,7 +234,7 @@ class App:
         length = 0x04
         data = bytearray([0xff, 0xff, 0xfe, datalength, instruction, address, length])
         for i in range(len(self.entid)):
-            left_leg_ids = [10, 12, 14, 16]
+            left_leg_ids = [11, 12, 14, 16]
             position = self.entpos[i].get()
             id = self.entid[i].get()
             if(id in left_leg_ids):
